@@ -33,8 +33,8 @@ document.querySelector('#submitDates').addEventListener('click', function() {
     // Get the values of the date inputs
     var startDate = document.getElementById('startDate').value;
     var endDate = document.getElementById('endDate').value;
-    
-    console.log(startDate, endDate);
+
+    getEQbyDate(startDate, endDate);
 });
 
 // Functions
@@ -50,12 +50,30 @@ const getEQ = async () => {
     }
 }
 
+const getEQbyDate = async (startDate, endDate) => {
+    try {
+        const responseEQbyDate = await fetch(`https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=${startDate}&endtime=${endDate}`);
+        const dataEQbyDate = await responseEQbyDate.json();
+        featuresEQ = dataEQbyDate.features;
+
+        console.log(featuresEQ);
+        selectMag.selectedIndex = 0;
+        paintEQ(featuresEQ);
+    } catch (error) {
+        throw error;
+    }
+}
+
 const paintEQ = (arr) => {
     // let markerEQ;
     // if (markerEQ !== undefined) {
     //     markerEQ.clearLayers();
     //     console.log('limpiado');
     // }
+    
+    // Clean all painted markers
+    arrMarkers.forEach(marker => map.removeLayer(marker));
+    arrMarkers = []; // Reset array
 
     arr.forEach(element => {
         const coord = element.geometry.coordinates;
@@ -90,9 +108,6 @@ const paintEQ = (arr) => {
 }
 
 const filterEQ = (target) => {
-    // Clean all painted markers
-    arrMarkers.forEach(marker => map.removeLayer(marker));
-    arrMarkers = []; // Reset array
 
     if (target === 'all') {
         paintEQ(featuresEQ);
